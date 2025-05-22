@@ -117,27 +117,25 @@ end
 
 local function handleEvent(event)
   if event == EVT_VIRTUAL_PREV then
-    if command_index <= 1 then
+    command_index = command_index - 1
+    if command_index <= 0 then
       group_index = group_index - 1
       if group_index <= 0 then
         group_index = #groups
       end
       command_dict_new = groups[group_index][2]
       command_index = #command_dict_new
-    else
-      command_index = command_index - 1
     end
   elseif event == EVT_VIRTUAL_NEXT then
-    command_dict = groups[group_index][2]
-    if command_index >= #command_dict then
-      group_index = group_index + 1
-      command_index = 0
-    end
-    if group_index > #groups then
-      group_index = 1
-    end
-
     command_index = command_index + 1
+    command_dict = groups[group_index][2]
+    if command_index > #command_dict then
+      group_index = group_index + 1
+      if group_index >= #groups then
+        group_index = 1
+      end
+      command_index = 1
+    end
   end
 end
 
