@@ -115,6 +115,48 @@ local function drawState()
   lcd.drawText(1, 0, "Stick Cmd: " .. group_str, INVERS)
 end
 
+local function identifySpecialFunc()
+  -- print("FOC = ", FUNC_OVERRIDE_CHANNEL)
+  local specialFuncs = {}
+  for i = 0, 63 do
+    info = model.getCustomFunction(i)
+    if info ~= nil then
+      if info['active'] == 1 and info['func'] == FUNC_OVERRIDE_CHANNEL then
+      -- if info['func'] == FUNC_OVERRIDE_CHANNEL then
+      -- if info['func'] == 130 then
+        print("switch, func, value, mode, param, active = ", info['switch'], info['func'], info["value"], info["mode"], info["param"], info["active"])
+        chan = info["param"] + 1
+        if chan == 1 or chan == 2 or chan == 3 or chan == 4 then
+          print("found specialFunc ", chan)
+          specialFuncs[chan] = {index = i, switch = info["switch"]}
+        end
+      end
+    end
+  end
+  print("#specialFuncs = ", #specialFuncs)
+
+  if #specialFuncs ~= 4 then
+    print("not enough channel overrides")
+    return
+  end
+
+  switch_index = specialFuncs[1]["switch"]
+  for chan = 2, 4 do
+    if specialFuncs[chan]["switch"] ~= switch_index then
+      print("inconsistent channel override switches")
+      return
+    end
+  end
+  switch = getSwitchName(switch_index)
+  logical_index = tonumber(string.sub(switch, 2)) - 1
+  setStickySwitch(logical_index, true)
+  -- print(getSwitchName(switch))
+  info = model.getLogicalSwitch(logical_index)
+  for k, v in pairs(info) do
+    print(k, v)
+  end
+end
+
 local function handleEvent(event)
   if event == EVT_VIRTUAL_PREV then
     command_index = command_index - 1
@@ -150,6 +192,8 @@ local function init()
   w = 40
   h = 40
   label_row = top + h + 4
+
+  identifySpecialFunc()
 end
 
 -- Main
